@@ -1,15 +1,11 @@
 package com.example.shdemo.service;
 
-import java.util.ArrayList;
 import java.util.List;
-
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.example.shdemo.domain.Car;
-import com.example.shdemo.domain.Person;
+import com.example.shdemo.domain.MobilePhone;
 
 @Component
 @Transactional
@@ -25,95 +21,60 @@ public class SellingMangerHibernateImpl implements SellingManager {
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
-	
-	@Override
-	public void addClient(Person person) {
-		person.setId(null);
-		sessionFactory.getCurrentSession().persist(person);
-	}
-	
-	@Override
-	public void deleteClient(Person person) {
-		person = (Person) sessionFactory.getCurrentSession().get(Person.class,
-				person.getId());
-		
-		// lazy loading here
-		for (Car car : person.getCars()) {
-			car.setSold(false);
-			sessionFactory.getCurrentSession().update(car);
-		}
-		sessionFactory.getCurrentSession().delete(person);
-	}
 
 	@Override
-	public List<Car> getOwnedCars(Person person) {
-		person = (Person) sessionFactory.getCurrentSession().get(Person.class,
-				person.getId());
-		// lazy loading here - try this code without (shallow) copying
-		List<Car> cars = new ArrayList<Car>(person.getCars());
-		return cars;
+	public long addMobilePhone(MobilePhone mobilePhone) {
+		mobilePhone.setId(null);
+		return (Long) sessionFactory.getCurrentSession().save(mobilePhone);
 	}
 
-	@Override
 	@SuppressWarnings("unchecked")
-	public List<Person> getAllClients() {
-		return sessionFactory.getCurrentSession().getNamedQuery("person.all")
-				.list();
+	@Override
+	public List<MobilePhone> getAllMobilePhones() {
+		return sessionFactory.getCurrentSession()
+				.getNamedQuery("mobilePhone.all").list();
 	}
 
 	@Override
-	public Person findClientByPin(String pin) {
-		return (Person) sessionFactory.getCurrentSession().getNamedQuery("person.byPin").setString("pin", pin).uniqueResult();
-	}
-
-
-	@Override
-	public Long addNewCar(Car car) {
-		car.setId(null);
-		return (Long) sessionFactory.getCurrentSession().save(car);
+	public MobilePhone getMobilePhoneById(long mobilePhone_id) {
+		return (MobilePhone) sessionFactory.getCurrentSession().get(
+				MobilePhone.class, mobilePhone_id);
 	}
 
 	@Override
-	public void sellCar(Long personId, Long carId) {
-		Person person = (Person) sessionFactory.getCurrentSession().get(
-				Person.class, personId);
-		Car car = (Car) sessionFactory.getCurrentSession()
-				.get(Car.class, carId);
-		car.setSold(true);
-		person.getCars().add(car);
+	public void updateMobilePhone(MobilePhone oldMobilePhone,
+			MobilePhone newMobilePhone) {
+		oldMobilePhone.setBatteryLifes(newMobilePhone.getBatteryLifes());
+		oldMobilePhone.setBrand(newMobilePhone.getBrand());
+		oldMobilePhone.setHasCamera(newMobilePhone.getHasCamera());
+		oldMobilePhone.setModel(newMobilePhone.getModel());
+
+		sessionFactory.getCurrentSession().update(oldMobilePhone);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public List<Car> getAvailableCars() {
-		return sessionFactory.getCurrentSession().getNamedQuery("car.unsold")
-				.list();
-	}
-	@Override
-	public void disposeCar(Person person, Car car) {
+	public void updateMobilePhoneById(MobilePhone newMobilePhone,
+			long mobilePhone_id) {
+		MobilePhone mobilPhone = (MobilePhone) sessionFactory
+				.getCurrentSession().get(MobilePhone.class, mobilePhone_id);
+		mobilPhone.setBatteryLifes(newMobilePhone.getBatteryLifes());
+		mobilPhone.setBrand(newMobilePhone.getBrand());
+		mobilPhone.setHasCamera(newMobilePhone.getHasCamera());
+		mobilPhone.setModel(newMobilePhone.getModel());
 
-		person = (Person) sessionFactory.getCurrentSession().get(Person.class,
-				person.getId());
-		car = (Car) sessionFactory.getCurrentSession().get(Car.class,
-				car.getId());
-
-		Car toRemove = null;
-		// lazy loading here (person.getCars)
-		for (Car aCar : person.getCars())
-			if (aCar.getId().compareTo(car.getId()) == 0) {
-				toRemove = aCar;
-				break;
-			}
-
-		if (toRemove != null)
-			person.getCars().remove(toRemove);
-
-		car.setSold(false);
+		sessionFactory.getCurrentSession().update(mobilPhone);
 	}
 
 	@Override
-	public Car findCarById(Long id) {
-		return (Car) sessionFactory.getCurrentSession().get(Car.class, id);
+	public void deleteMobilePhone(MobilePhone mobilePhone) {
+		sessionFactory.getCurrentSession().delete(mobilePhone);
 	}
 
+	@Override
+	public void deleteMobilePhoneById(long mobilPhone_id) {
+		MobilePhone mobilPhone = (MobilePhone) sessionFactory
+				.getCurrentSession().get(MobilePhone.class, mobilPhone_id);
+
+		sessionFactory.getCurrentSession().delete(mobilPhone);
+	}
 }

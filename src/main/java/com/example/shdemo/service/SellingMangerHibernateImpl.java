@@ -1,11 +1,14 @@
 package com.example.shdemo.service;
 
 import java.util.List;
+
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.example.shdemo.domain.MobilePhone;
+import com.example.shdemo.domain.Owner;
 
 @Component
 @Transactional
@@ -76,5 +79,68 @@ public class SellingMangerHibernateImpl implements SellingManager {
 				.getCurrentSession().get(MobilePhone.class, mobilPhone_id);
 
 		sessionFactory.getCurrentSession().delete(mobilPhone);
+	}
+
+	@Override
+	public long addOwner(Owner owner) {
+		owner.setId(null);
+		return (Long) sessionFactory.getCurrentSession().save(owner);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Owner> getAllOwners() {
+		return sessionFactory.getCurrentSession()
+				.getNamedQuery("owner.all").list();
+	}
+
+	@Override
+	public Owner getOwnerById(long owner_id) {
+		return (Owner) sessionFactory.getCurrentSession().get(
+				Owner.class, owner_id);
+	}
+
+	@Override
+	public void updateOwner(Owner oldOwner, Owner newOwner) {
+		oldOwner.setName(newOwner.getName());
+		oldOwner.setSurname(newOwner.getSurname());
+		oldOwner.setAge(newOwner.getAge());
+		oldOwner.setCity(newOwner.getCity());
+		oldOwner.setMobilephones(newOwner.getMobilephones());
+		
+		sessionFactory.getCurrentSession().update(oldOwner);
+	}
+
+	@Override
+	public void updateOwnerById(Owner newOwner, long owner_id) {
+		Owner owner = (Owner) sessionFactory
+				.getCurrentSession().get(Owner.class, owner_id);
+		owner.setName(newOwner.getName());
+		owner.setSurname(newOwner.getSurname());
+		owner.setAge(newOwner.getAge());
+		owner.setCity(newOwner.getCity());
+	
+		
+		sessionFactory.getCurrentSession().update(owner);
+	}
+
+	@Override
+	public void deleteOwner(Owner owner) {
+		sessionFactory.getCurrentSession().delete(owner);
+	}
+
+	@Override
+	public void deleteOwnerById(long owner_id) {
+		Owner owner = (Owner) sessionFactory
+				.getCurrentSession().get(Owner.class, owner_id);
+
+		sessionFactory.getCurrentSession().delete(owner);
+	}
+
+	@Override
+	public List<MobilePhone> getMobilePhonesFromOwner(Owner owner) {
+		Owner retrivedOwner = (Owner) sessionFactory
+				.getCurrentSession().get(Owner.class, owner.getId());
+		return retrivedOwner.getMobilephones();
 	}
 }
